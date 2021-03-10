@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
 //@Validated
 public class WalletController {
 
-    private WalletBusinessLayer walletBusiness;
+    private final WalletBusinessLayer walletBusiness;
 
     @Autowired
     public WalletController(WalletBusinessLayer walletBusiness) {

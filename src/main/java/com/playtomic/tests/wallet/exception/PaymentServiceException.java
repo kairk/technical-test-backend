@@ -1,4 +1,4 @@
-package com.playtomic.tests.wallet.exception.custom;
+package com.playtomic.tests.wallet.exception;
 
 /**
  *

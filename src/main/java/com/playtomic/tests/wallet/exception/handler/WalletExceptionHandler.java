@@ -1,6 +1,6 @@
-package com.playtomic.tests.wallet.exception;
+package com.playtomic.tests.wallet.exception.handler;
 
-import com.playtomic.tests.wallet.exception.custom.PaymentServiceException;
+import com.playtomic.tests.wallet.exception.PaymentServiceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

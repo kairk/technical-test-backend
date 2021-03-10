@@ -1,6 +1,7 @@
 package com.playtomic.tests.wallet.exception.handler;
 
 import com.playtomic.tests.wallet.exception.PaymentServiceException;
+import com.playtomic.tests.wallet.exception.WalletNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,12 @@ public class WalletExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = PaymentServiceException.class)
     protected ResponseEntity<Object> handlePaymentException(PaymentServiceException ex, WebRequest request) {
         String bodyOfResponse = "There was an error operating the payment service";
-        return handleExceptionInternal(ex, bodyOfResponse,
-                new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+        return handleExceptionInternal(ex, bodyOfResponse, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+    }
+
+    @ExceptionHandler(value = WalletNotFoundException.class)
+    protected ResponseEntity<Object> handleWalletNotFound(WalletNotFoundException ex, WebRequest request) {
+        String bodyOfResponse = "Couldn't find specified wallet";
+        return handleExceptionInternal(ex, bodyOfResponse, new HttpHeaders(), HttpStatus.NO_CONTENT, request);
     }
 }

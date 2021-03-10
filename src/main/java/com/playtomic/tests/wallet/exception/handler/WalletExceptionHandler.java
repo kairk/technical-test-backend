@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.Optional;
+
 @ControllerAdvice
 @Slf4j
 @Component
@@ -26,6 +28,8 @@ public class WalletExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = WalletNotFoundException.class)
     protected ResponseEntity<Object> handleWalletNotFound(WalletNotFoundException ex, WebRequest request) {
         String bodyOfResponse = "Couldn't find specified wallet";
-        return handleExceptionInternal(ex, bodyOfResponse, new HttpHeaders(), HttpStatus.NO_CONTENT, request);
+        HttpStatus status = Optional.ofNullable(ex.getStatus()).orElse(HttpStatus.NO_CONTENT);
+
+        return handleExceptionInternal(ex, bodyOfResponse, new HttpHeaders(), status, request);
     }
 }

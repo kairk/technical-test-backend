@@ -30,7 +30,7 @@ public class WalletBusinessLayerDefault implements WalletBusinessLayer {
 
     /**
      * Find asynchronously a wallet by its ID.
-     * @Throws WalletNotFoundException if the wallet is not found
+     * @throws WalletNotFoundException if the wallet is not found
      */
     @Override
     @Async

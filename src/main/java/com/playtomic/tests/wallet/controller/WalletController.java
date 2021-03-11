@@ -10,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.concurrent.CompletableFuture;
@@ -22,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping(Consts.API_VERSION + Consts.WALLET_ENDPOIT)
 @Api(tags = "wallet")
-//@Validated
+//TODO: Validation layer with @Validated
 public class WalletController {
 
     private final WalletBusinessLayer walletBusiness;
@@ -43,5 +40,19 @@ public class WalletController {
     public CompletableFuture<ResponseEntity<WalletResponse>> getWalletById(
             @PathVariable Long id) {
         return walletBusiness.getWalletById(id).thenApply(ResponseEntity::ok);
+    }
+
+    @PutMapping(path = "/{id}/charge", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Substract an ammount from a wallet")
+    @ApiResponses({
+            @ApiResponse(code = HttpServletResponse.SC_OK, message = "Wallet updated"),
+            @ApiResponse(code = HttpServletResponse.SC_NO_CONTENT, message = "Wallet not found"),
+            @ApiResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message = "Internal error processing request")
+    }
+    )
+    public CompletableFuture<ResponseEntity<WalletResponse>> chargeWallet(
+            @PathVariable Long id,
+            @RequestBody String amount) {
+        return walletBusiness.chargeWalletById(id, amount).thenApply(ResponseEntity::ok);
     }
 }

@@ -1,7 +1,7 @@
 package com.playtomic.tests.wallet.mapper;
 
 import com.playtomic.tests.wallet.model.api.WalletResponse;
-import com.playtomic.tests.wallet.model.repository.Wallet;
+import com.playtomic.tests.wallet.model.repository.WalletEntity;
 import org.junit.Test;
 import org.mapstruct.factory.Mappers;
 
@@ -15,7 +15,7 @@ public class WalletMapperTest {
     @Test
     public void respositoryToService_OK() {
         //Given
-        Wallet repositoryWallet = Wallet.builder().id(1L).balance(BigDecimal.TEN).build();
+        WalletEntity repositoryWallet = WalletEntity.builder().id(1L).balance(BigDecimal.TEN).build();
         com.playtomic.tests.wallet.model.service.Wallet expected =
                 com.playtomic.tests.wallet.model.service.Wallet.builder().id(1L).balance(BigDecimal.TEN).build();
 

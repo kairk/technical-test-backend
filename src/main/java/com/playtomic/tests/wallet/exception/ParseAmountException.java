@@ -4,28 +4,28 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public class WalletNotFoundException extends RuntimeException {
+public class ParseAmountException extends RuntimeException {
     private final String message;
     private final HttpStatus status;
 
-    public WalletNotFoundException(String message, HttpStatus status) {
+    public ParseAmountException(String message, HttpStatus status) {
         super(message);
 
         this.message = message;
         this.status = status;
     }
 
-    public WalletNotFoundException(String message, Throwable ex, HttpStatus status) {
+    public ParseAmountException(String message, Throwable ex, HttpStatus status) {
         super(message, ex);
 
         this.message = message;
         this.status = status;
     }
 
-    public WalletNotFoundException(String message) {
+    public ParseAmountException(String message) {
         super(message);
 
         this.message = message;
-        this.status = HttpStatus.NO_CONTENT;
+        this.status = HttpStatus.BAD_REQUEST;
     }
 }

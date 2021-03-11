@@ -6,4 +6,6 @@ import java.util.concurrent.CompletableFuture;
 
 public interface WalletBusinessLayer {
     CompletableFuture<WalletResponse> getWalletById(Long walletId);
+
+    CompletableFuture<WalletResponse> chargeWalletById(Long walletId, String amount);
 }

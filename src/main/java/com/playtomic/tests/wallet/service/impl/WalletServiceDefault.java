@@ -7,6 +7,7 @@ import com.playtomic.tests.wallet.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -25,5 +26,10 @@ public class WalletServiceDefault implements WalletService {
     public Optional<Wallet> getWalletById(Long id) {
         return Optional.ofNullable(walletRepository.findOne(id))
                 .map(walletMapper::repositoryToService);
+    }
+
+    @Override
+    public Optional<Wallet> chargeWalletById(Long id, BigDecimal amount) {
+        return Optional.empty();
     }
 }

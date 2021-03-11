@@ -1,5 +1,6 @@
 package com.playtomic.tests.wallet.exception.handler;
 
+import com.playtomic.tests.wallet.exception.ParseAmountException;
 import com.playtomic.tests.wallet.exception.PaymentServiceException;
 import com.playtomic.tests.wallet.exception.WalletNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +12,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-
-import java.util.Optional;
 
 @ControllerAdvice
 @Slf4j
@@ -28,8 +27,14 @@ public class WalletExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = WalletNotFoundException.class)
     protected ResponseEntity<Object> handleWalletNotFound(WalletNotFoundException ex, WebRequest request) {
         String bodyOfResponse = "Couldn't find specified wallet";
-        HttpStatus status = Optional.ofNullable(ex.getStatus()).orElse(HttpStatus.NO_CONTENT);
 
-        return handleExceptionInternal(ex, bodyOfResponse, new HttpHeaders(), status, request);
+        return handleExceptionInternal(ex, bodyOfResponse, new HttpHeaders(), ex.getStatus(), request);
+    }
+
+    @ExceptionHandler(value = ParseAmountException.class)
+    protected ResponseEntity<Object> handleParseError(ParseAmountException ex, WebRequest request) {
+        String bodyOfResponse = "Couldn't parse given amount";
+
+        return handleExceptionInternal(ex, bodyOfResponse, new HttpHeaders(), ex.getStatus(), request);
     }
 }

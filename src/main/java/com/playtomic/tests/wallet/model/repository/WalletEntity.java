@@ -8,11 +8,11 @@ import javax.persistence.Id;
 import java.math.BigDecimal;
 
 @Entity
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Wallet {
+public class WalletEntity {
     @Id
     @GeneratedValue
     Long id;

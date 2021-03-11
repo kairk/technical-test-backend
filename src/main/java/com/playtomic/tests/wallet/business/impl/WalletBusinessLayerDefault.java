@@ -1,8 +1,10 @@
 package com.playtomic.tests.wallet.business.impl;
 
 import com.playtomic.tests.wallet.business.WalletBusinessLayer;
+import com.playtomic.tests.wallet.exception.GenericWalletException;
 import com.playtomic.tests.wallet.exception.ParseAmountException;
 import com.playtomic.tests.wallet.exception.WalletNotFoundException;
+import com.playtomic.tests.wallet.exception.WalletServiceException;
 import com.playtomic.tests.wallet.mapper.BigDecimalMapper;
 import com.playtomic.tests.wallet.mapper.WalletMapper;
 import com.playtomic.tests.wallet.model.api.WalletResponse;
@@ -57,11 +59,16 @@ public class WalletBusinessLayerDefault implements WalletBusinessLayer {
     @Override
     @Async
     public CompletableFuture<WalletResponse> chargeWalletById(Long walletId, String amount) {
+        Wallet serviceCall;
         BigDecimal parsedAmount = bdMapper.stringToBigDecimal(amount)
                 .orElseThrow(() -> new ParseAmountException("Unable to parse amount: " + amount));
 
-        Wallet serviceCall = walletService.chargeWalletById(walletId, parsedAmount)
-                .orElseThrow(() -> new WalletNotFoundException("Unable to find wallet with id: " + walletId));
+        try {
+            serviceCall = walletService.chargeWalletById(walletId, parsedAmount)
+                    .orElseThrow(() -> new WalletNotFoundException("Unable to find wallet with id: " + walletId));
+        } catch (WalletServiceException e) {
+            throw new GenericWalletException("There was a problem updating the wallet balance");
+        }
 
         return CompletableFuture.completedFuture(serviceCall)
                 .thenApply(walletMapper::serviceToRestResponse);

@@ -1,7 +1,6 @@
 package com.playtomic.tests.wallet.repository;
 
-import com.playtomic.tests.wallet.model.repository.Wallet;
-import com.playtomic.tests.wallet.repository.WalletRepository;
+import com.playtomic.tests.wallet.model.repository.WalletEntity;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,10 +24,10 @@ public class WalletRepositoryIT {
     @Test
     public void findOne_OK() {
         Long id = 1L;
-        Wallet wallet = Wallet.builder().id(id).balance(BigDecimal.TEN).build();
+        WalletEntity wallet = WalletEntity.builder().id(id).balance(BigDecimal.TEN).build();
         walletRepository.save(wallet);
 
-        Wallet findWallet = walletRepository.findOne(id);
+        WalletEntity findWallet = walletRepository.findOne(id);
 
         assertEquals(wallet.getId(), findWallet.getId());
         assertEquals(0, wallet.getBalance().compareTo(findWallet.getBalance()));
@@ -37,11 +36,21 @@ public class WalletRepositoryIT {
     @Test
     public void findOne_nullWhenNoExists() {
         Long id = 1L;
-        Wallet wallet = Wallet.builder().id(id).balance(BigDecimal.TEN).build();
+        WalletEntity wallet = WalletEntity.builder().id(id).balance(BigDecimal.TEN).build();
         walletRepository.save(wallet);
 
-        Wallet findWallet = walletRepository.findOne(5L);
+        WalletEntity findWallet = walletRepository.findOne(5L);
 
         assertNull(findWallet);
+    }
+
+    @Test
+    public void save_returnsSameValue() {
+        Long id = 1L;
+        WalletEntity wallet = WalletEntity.builder().id(id).balance(BigDecimal.TEN).build();
+
+        WalletEntity walletEntity = walletRepository.save(wallet);
+
+        assertEquals(wallet, walletEntity);
     }
 }

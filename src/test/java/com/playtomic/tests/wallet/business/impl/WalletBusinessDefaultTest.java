@@ -1,7 +1,9 @@
 package com.playtomic.tests.wallet.business.impl;
 
+import com.playtomic.tests.wallet.exception.GenericWalletException;
 import com.playtomic.tests.wallet.exception.ParseAmountException;
 import com.playtomic.tests.wallet.exception.WalletNotFoundException;
+import com.playtomic.tests.wallet.exception.WalletServiceException;
 import com.playtomic.tests.wallet.mapper.BigDecimalMapper;
 import com.playtomic.tests.wallet.mapper.WalletMapper;
 import com.playtomic.tests.wallet.model.api.WalletResponse;
@@ -84,7 +86,7 @@ public class WalletBusinessDefaultTest {
     }
 
     @Test
-    public void chargeWalletById_OK() throws ExecutionException, InterruptedException {
+    public void chargeWalletById_OK() throws ExecutionException, InterruptedException, WalletServiceException {
         //Given
         Long id = 1L;
         String amount = "15.6567";
@@ -125,5 +127,29 @@ public class WalletBusinessDefaultTest {
         //Then
         assertTrue(result.isCompletedExceptionally());
     }
+
+    @Test
+    public void chargeWalletById_ExceptionOnService() throws WalletServiceException {
+        //Given
+        Long id = 1L;
+        String amount = "15.6567";
+        BigDecimal bdAmount = new BigDecimal(amount);
+
+        exceptionRule.expect(isA(GenericWalletException.class));
+        exceptionRule.expectMessage("There was a problem updating the wallet balance");
+
+
+        when(bdMapperMock.stringToBigDecimal(amount)).thenReturn(Optional.of(bdAmount));
+        when(walletServiceMock.chargeWalletById(id, bdAmount)).thenThrow(new WalletServiceException(""));
+
+        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock);
+
+        //When
+        CompletableFuture<WalletResponse> result = service.chargeWalletById(id, amount);
+
+        //Then
+        assertTrue(result.isCompletedExceptionally());
+    }
+
 
 }

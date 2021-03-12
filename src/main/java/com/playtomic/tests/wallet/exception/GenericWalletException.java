@@ -28,4 +28,11 @@ public class GenericWalletException extends RuntimeException {
         this.message = message;
         this.status = HttpStatus.INTERNAL_SERVER_ERROR;
     }
+
+    public GenericWalletException(String message, Throwable ex) {
+        super(message, ex);
+
+        this.message = message;
+        this.status = HttpStatus.INTERNAL_SERVER_ERROR;
+    }
 }

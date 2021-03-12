@@ -144,4 +144,48 @@ public class WalletServiceDefaultTest {
         verify(walletRepositoryMock, never()).save(any(WalletEntity.class));
 
     }
+
+    @Test
+    public void rechargeWalletById_OK() {
+        //Given
+        Long id = 1L;
+        BigDecimal amount = BigDecimal.ONE;
+        WalletEntity repositoryWallet = WalletEntity.builder().id(id).balance(BigDecimal.TEN).build();
+        Wallet serviceWallet = Wallet.builder().id(id).balance(new BigDecimal("11")).build();
+        Wallet expected = Wallet.builder().id(id).balance(new BigDecimal("11")).build();
+        WalletEntity rechargedWallet = repositoryWallet.toBuilder().balance(repositoryWallet.getBalance().add(amount)).build();
+
+        when(walletRepositoryMock.findOne(id)).thenReturn(repositoryWallet);
+        when(walletRepositoryMock.save(rechargedWallet)).thenReturn(rechargedWallet);
+        when(walletMapperMock.repositoryToService(rechargedWallet)).thenReturn(serviceWallet);
+
+        WalletServiceDefault service = new WalletServiceDefault(walletRepositoryMock, walletMapperMock);
+
+        //When
+        Optional<Wallet> result = service.rechargeWalletById(id, amount);
+
+        //Then
+        assertTrue(result.isPresent());
+        assertEquals(expected, result.get());
+    }
+
+    @Test
+    public void rechargeWalletById_nullOnRepository() {
+        //Given
+        Long id = 1L;
+        BigDecimal amount = BigDecimal.ONE;
+
+        when(walletRepositoryMock.findOne(id)).thenReturn(null);
+
+        WalletServiceDefault service = new WalletServiceDefault(walletRepositoryMock, walletMapperMock);
+
+        //When
+        Optional<Wallet> result = service.rechargeWalletById(id, amount);
+
+        //Then
+        assertFalse(result.isPresent());
+        verify(walletRepositoryMock, never()).save(any(WalletEntity.class));
+        verify(walletMapperMock, never()).repositoryToService(any());
+    }
+
 }

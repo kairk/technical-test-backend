@@ -28,4 +28,11 @@ public class ParseAmountException extends RuntimeException {
         this.message = message;
         this.status = HttpStatus.BAD_REQUEST;
     }
+
+    public ParseAmountException(String message, Throwable ex) {
+        super(message, ex);
+
+        this.message = message;
+        this.status = HttpStatus.BAD_REQUEST;
+    }
 }

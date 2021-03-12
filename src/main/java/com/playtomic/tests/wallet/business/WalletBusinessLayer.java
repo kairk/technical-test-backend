@@ -8,4 +8,6 @@ public interface WalletBusinessLayer {
     CompletableFuture<WalletResponse> getWalletById(Long walletId);
 
     CompletableFuture<WalletResponse> chargeWalletById(Long walletId, String amount);
+
+    CompletableFuture<WalletResponse> rechargeWalletById(Long walletId, String amount);
 }

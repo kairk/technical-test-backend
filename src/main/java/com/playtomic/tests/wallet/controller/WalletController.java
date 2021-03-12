@@ -43,7 +43,7 @@ public class WalletController {
     }
 
     @PutMapping(path = "/{id}/charge", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Substract an ammount from a wallet")
+    @ApiOperation(value = "Substract an amount from a wallet")
     @ApiResponses({
             @ApiResponse(code = HttpServletResponse.SC_OK, message = "Wallet updated"),
             @ApiResponse(code = HttpServletResponse.SC_NO_CONTENT, message = "Wallet not found"),
@@ -54,5 +54,19 @@ public class WalletController {
             @PathVariable Long id,
             @RequestBody String amount) {
         return walletBusiness.chargeWalletById(id, amount).thenApply(ResponseEntity::ok);
+    }
+
+    @PutMapping(path = "/{id}/recharge", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Add an amount from a wallet")
+    @ApiResponses({
+            @ApiResponse(code = HttpServletResponse.SC_OK, message = "Wallet updated"),
+            @ApiResponse(code = HttpServletResponse.SC_NO_CONTENT, message = "Wallet not found"),
+            @ApiResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message = "Internal error processing request")
+    }
+    )
+    public CompletableFuture<ResponseEntity<WalletResponse>> rechargeWallet(
+            @PathVariable Long id,
+            @RequestBody String amount) {
+        return walletBusiness.rechargeWalletById(id, amount).thenApply(ResponseEntity::ok);
     }
 }

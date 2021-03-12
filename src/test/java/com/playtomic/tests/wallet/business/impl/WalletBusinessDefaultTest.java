@@ -1,13 +1,11 @@
 package com.playtomic.tests.wallet.business.impl;
 
-import com.playtomic.tests.wallet.exception.GenericWalletException;
-import com.playtomic.tests.wallet.exception.ParseAmountException;
-import com.playtomic.tests.wallet.exception.WalletNotFoundException;
-import com.playtomic.tests.wallet.exception.WalletServiceException;
+import com.playtomic.tests.wallet.exception.*;
 import com.playtomic.tests.wallet.mapper.BigDecimalMapper;
 import com.playtomic.tests.wallet.mapper.WalletMapper;
 import com.playtomic.tests.wallet.model.api.WalletResponse;
 import com.playtomic.tests.wallet.model.service.Wallet;
+import com.playtomic.tests.wallet.service.PaymentService;
 import com.playtomic.tests.wallet.service.WalletService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,7 +24,7 @@ import java.util.concurrent.ExecutionException;
 import static org.hamcrest.CoreMatchers.isA;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WalletBusinessDefaultTest {
@@ -37,6 +35,8 @@ public class WalletBusinessDefaultTest {
     WalletMapper walletMapperMock;
     @Mock
     BigDecimalMapper bdMapperMock;
+    @Mock
+    PaymentService paymentService;
 
     @Rule
     public ExpectedException exceptionRule = ExpectedException.none();
@@ -57,7 +57,7 @@ public class WalletBusinessDefaultTest {
         when(walletServiceMock.getWalletById(id)).thenReturn(Optional.of(serviceWallet));
         when(walletMapperMock.serviceToRestResponse(serviceWallet)).thenReturn(responseWallet);
 
-        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock);
+        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock, paymentService);
 
         //When
         CompletableFuture<WalletResponse> result = service.getWalletById(id);
@@ -76,7 +76,7 @@ public class WalletBusinessDefaultTest {
 
         when(walletServiceMock.getWalletById(1L)).thenReturn(Optional.empty());
 
-        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock);
+        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock, paymentService);
 
         //When
         CompletableFuture<WalletResponse> result = service.getWalletById(id);
@@ -99,7 +99,7 @@ public class WalletBusinessDefaultTest {
         when(walletServiceMock.chargeWalletById(id, bdAmount)).thenReturn(Optional.of(serviceWallet));
         when(walletMapperMock.serviceToRestResponse(serviceWallet)).thenReturn(responseWallet);
 
-        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock);
+        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock, paymentService);
 
         //When
         CompletableFuture<WalletResponse> result = service.chargeWalletById(id, amount);
@@ -119,7 +119,7 @@ public class WalletBusinessDefaultTest {
 
         when(bdMapperMock.stringToBigDecimal(amount)).thenReturn(Optional.empty());
 
-        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock);
+        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock, paymentService);
 
         //When
         CompletableFuture<WalletResponse> result = service.chargeWalletById(id, amount);
@@ -142,7 +142,7 @@ public class WalletBusinessDefaultTest {
         when(bdMapperMock.stringToBigDecimal(amount)).thenReturn(Optional.of(bdAmount));
         when(walletServiceMock.chargeWalletById(id, bdAmount)).thenThrow(new WalletServiceException(""));
 
-        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock);
+        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock, paymentService);
 
         //When
         CompletableFuture<WalletResponse> result = service.chargeWalletById(id, amount);
@@ -151,5 +151,133 @@ public class WalletBusinessDefaultTest {
         assertTrue(result.isCompletedExceptionally());
     }
 
+    @Test
+    public void rechargeWalletById_OK() throws ExecutionException, InterruptedException, WalletServiceException, PaymentServiceException {
+        //Given
+        Long id = 1L;
+        String amount = "15.6567";
+        BigDecimal bdAmount = new BigDecimal(amount);
+        Wallet serviceWallet = Wallet.builder().id(id).balance(BigDecimal.TEN).build();
+        WalletResponse responseWallet = WalletResponse.builder().id(id).balance("10.0").build();
+        WalletResponse expected = WalletResponse.builder().id(id).balance("10.0").build();
+
+        when(bdMapperMock.stringToBigDecimal(amount)).thenReturn(Optional.of(bdAmount));
+        doNothing().when(paymentService).charge(bdAmount);
+        when(walletServiceMock.rechargeWalletById(id, bdAmount)).thenReturn(Optional.of(serviceWallet));
+        when(walletMapperMock.serviceToRestResponse(serviceWallet)).thenReturn(responseWallet);
+
+        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock, paymentService);
+
+        //When
+        CompletableFuture<WalletResponse> result = service.rechargeWalletById(id, amount);
+
+        //Then
+        assertEquals(expected, result.get());
+        verify(paymentService, times(1)).charge(bdAmount);
+        verify(walletServiceMock, times(1)).rechargeWalletById(id, bdAmount);
+    }
+
+    @Test
+    public void rechargeWalletById_ErrorFormattingAmount() throws PaymentServiceException, WalletServiceException {
+        //Given
+        Long id = 1L;
+        String amount = "error";
+
+        exceptionRule.expect(isA(ParseAmountException.class));
+        exceptionRule.expectMessage("Unable to parse amount: " + amount);
+
+        when(bdMapperMock.stringToBigDecimal(amount)).thenReturn(Optional.empty());
+
+        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock, paymentService);
+
+        //When
+        CompletableFuture<WalletResponse> result = service.rechargeWalletById(id, amount);
+
+        //Then
+        assertTrue(result.isCompletedExceptionally());
+        verify(paymentService, never()).charge(any());
+        verify(walletServiceMock, never()).rechargeWalletById(any(), any());
+    }
+
+    @Test
+    public void rechargeWalletById_ErrorOnPaymentService() throws WalletServiceException, PaymentServiceException, ExecutionException, InterruptedException {
+        //Given
+        Long id = 1L;
+        String amount = "15.6567";
+        BigDecimal bdAmount = new BigDecimal(amount);
+
+        exceptionRule.expectCause(isA(GenericWalletException.class));
+        exceptionRule.expectMessage("There was an error calling the payment service");
+
+        when(bdMapperMock.stringToBigDecimal(amount)).thenReturn(Optional.of(bdAmount));
+        doThrow(new PaymentServiceException()).when(paymentService).charge(bdAmount);
+
+        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock, paymentService);
+
+        //When
+        CompletableFuture<WalletResponse> result = service.rechargeWalletById(id, amount);
+        result.get();
+
+        //Then
+        assertTrue(result.isCompletedExceptionally());
+        verify(paymentService, times(1)).charge(bdAmount);
+        verify(walletServiceMock, never()).rechargeWalletById(id, bdAmount);
+    }
+
+    @Test
+    public void rechargeWalletById_ErrorOnWalletService() throws WalletServiceException, PaymentServiceException, ExecutionException, InterruptedException {
+        //Given
+        Long id = 1L;
+        String amount = "15.6567";
+        BigDecimal bdAmount = new BigDecimal(amount);
+
+        exceptionRule.expectCause(isA(GenericWalletException.class));
+        exceptionRule.expectMessage("Error persisting charge wallet information");
+
+
+        when(bdMapperMock.stringToBigDecimal(amount)).thenReturn(Optional.of(bdAmount));
+        doNothing().when(paymentService).charge(bdAmount);
+        when(walletServiceMock.rechargeWalletById(id, bdAmount)).thenThrow(new WalletServiceException(""));
+
+        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock, paymentService);
+
+        //When
+        CompletableFuture<WalletResponse> result = service.rechargeWalletById(id, amount);
+        result.get();
+
+        //Then
+        assertTrue(result.isCompletedExceptionally());
+        verify(paymentService, times(1)).charge(bdAmount);
+        verify(walletServiceMock, times(1)).rechargeWalletById(id, bdAmount);
+        verify(walletMapperMock, never()).serviceToRestResponse(any());
+    }
+
+    @Test
+    public void rechargeWalletById_ErrorWalletNotFound() throws WalletServiceException, PaymentServiceException, ExecutionException, InterruptedException {
+        //Given
+        Long id = 1L;
+        String amount = "15.6567";
+        BigDecimal bdAmount = new BigDecimal(amount);
+
+        exceptionRule.expectCause(isA(WalletNotFoundException.class));
+        exceptionRule.expectMessage("Unable to find wallet with id: " + id);
+
+
+        when(bdMapperMock.stringToBigDecimal(amount)).thenReturn(Optional.of(bdAmount));
+        doNothing().when(paymentService).charge(bdAmount);
+        when(walletServiceMock.rechargeWalletById(id, bdAmount)).thenReturn(Optional.empty());
+
+        WalletBusinessLayerDefault service = new WalletBusinessLayerDefault(walletServiceMock, walletMapperMock, bdMapperMock, paymentService);
+
+        //When
+        CompletableFuture<WalletResponse> result = service.rechargeWalletById(id, amount);
+        result.get();
+
+        //Then
+        assertTrue(result.isCompletedExceptionally());
+        verify(paymentService, times(1)).charge(bdAmount);
+        verify(walletServiceMock, times(1)).rechargeWalletById(id, bdAmount);
+        verify(walletMapperMock, never()).serviceToRestResponse(any());
+    }
 
 }

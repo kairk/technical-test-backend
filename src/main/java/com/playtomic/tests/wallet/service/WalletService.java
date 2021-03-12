@@ -10,4 +10,6 @@ public interface WalletService {
     Optional<Wallet> getWalletById(Long id);
 
     Optional<Wallet> chargeWalletById(Long id, BigDecimal amount) throws WalletServiceException;
+
+    Optional<Wallet> rechargeWalletById(Long id, BigDecimal amount) throws WalletServiceException;
 }

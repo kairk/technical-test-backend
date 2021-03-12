@@ -51,12 +51,19 @@ public class WalletServiceDefault implements WalletService {
     }
 
     @Override
-    public Optional<Wallet> rechargeWalletById(Long id, BigDecimal amount) throws WalletServiceException {
-        return Optional.empty();
+    public Optional<Wallet> rechargeWalletById(Long id, BigDecimal amount) {
+        return Optional.ofNullable(walletRepository.findOne(id))
+                .map(wallet -> rechargeAmount(amount, wallet))
+                .map(walletRepository::save)
+                .map(walletMapper::repositoryToService);
     }
 
     private WalletEntity chargeAmount(BigDecimal amount, WalletEntity walletEntity) {
         return walletEntity.toBuilder().balance(walletEntity.getBalance().subtract(amount)).build();
+    }
+
+    private WalletEntity rechargeAmount(BigDecimal amount, WalletEntity walletEntity) {
+        return walletEntity.toBuilder().balance(walletEntity.getBalance().add(amount)).build();
     }
 
     private boolean canChargeAmount(BigDecimal amount, WalletEntity walletEntity) {

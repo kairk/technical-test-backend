@@ -8,11 +8,17 @@ import com.playtomic.tests.wallet.repository.WalletRepository;
 import com.playtomic.tests.wallet.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
+/**
+ * Service managing Wallet entity operations,
+ * as WalletEntity is implementing OptimisticLocking strategy the service should catch OptimisticLockException and retry operations
+ */
 @Service
+@Transactional(readOnly = true)
 public class WalletServiceDefault implements WalletService {
 
     private final WalletRepository walletRepository;

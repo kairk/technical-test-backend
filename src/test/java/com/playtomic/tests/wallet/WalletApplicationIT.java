@@ -34,9 +34,8 @@ public class WalletApplicationIT {
     private MockMvc mockMvc;
 
     @Before
-    public void setup() throws Exception {
+    public void setup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
-        this.walletRepository.deleteAll();
     }
 
     @Test
@@ -56,7 +55,7 @@ public class WalletApplicationIT {
     @Test
     public void getWalletById_NoContent() throws Exception {
         MvcResult result = mockMvc
-                .perform(get("/v1/wallet/{id}", 1L)).andReturn();
+                .perform(get("/v1/wallet/{id}", 5L)).andReturn();
 
         mockMvc
                 .perform(asyncDispatch(result))
